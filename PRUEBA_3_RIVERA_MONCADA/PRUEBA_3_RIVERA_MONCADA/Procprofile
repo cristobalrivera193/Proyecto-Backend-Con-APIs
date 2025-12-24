@@ -1,1 +1,1 @@
-web: gunicorn PRUEBA_3_RIVERA_MONCADA.wsgi
+web: python manage.py migrate && gunicorn nombre_proyecto.wsgi:application
