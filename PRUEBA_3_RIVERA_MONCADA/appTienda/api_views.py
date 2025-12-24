@@ -3,7 +3,7 @@ from rest_framework import viewsets, permissions, generics
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Insumo, Pedido
-from .serializers import InsumoSerializer, PedidoSerializer  # Crea serializers.py
+from .serializers import InsumoSerializer, PedidoSerializer
 
 class InsumoViewSet(viewsets.ModelViewSet):
     queryset = Insumo.objects.all()
@@ -52,7 +52,6 @@ class PedidoFiltrar(generics.ListAPIView):
 from rest_framework.exceptions import ValidationError
 
 def get_queryset(self):
-    # ... código anterior ...
     try:
         max_resultados = int(max_resultados)
         if max_resultados > 50 or max_resultados < 1:
