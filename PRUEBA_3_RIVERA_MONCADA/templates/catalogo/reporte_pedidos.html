@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Reporte de Pedidos{% endblock %}
+{% block content %}
+<h1>Reporte de Pedidos</h1>
+
+<!-- Formulario de filtros -->
+<form method="GET">
+    <label>Desde:</label> <input type="date" name="desde" value="{{ desde }}">
+    <label>Hasta:</label> <input type="date" name="hasta" value="{{ hasta }}">
+    <label>Estado:</label> <input type="text" name="estado" value="{{ estado }}">
+    <label>Plataforma:</label> <input type="text" name="plataforma" value="{{ plataforma }}">
+    <button type="submit">Filtrar</button>
+</form>
+
+<!-- Tabla -->
+<table class="table">
+    <thead>
+        <tr>
+            <th>Token</th>
+            <th>Cliente</th>
+            <th>Estado</th>
+            <th>Origen</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in pedidos %}
+            <tr>
+                <td>{{ p.token }}</td>
+                <td>{{ p.cliente_nombre }}</td>
+                <td>{{ p.estado_pedido }}</td>
+                <td>{{ p.origen_pedido }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Gráfico Chart.js -->
+<canvas id="myChart" width="400" height="200"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+var ctx = document.getElementById('myChart').getContext('2d');
+var myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [{
+            label: 'Pedidos por Estado',
+            data: {{ chart_data|safe }},
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+</script>
+{% endblock %}

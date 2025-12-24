@@ -1,17 +1,16 @@
+
 from django import forms
 from .models import Pedido
-
-
 
 class PedidoForm(forms.ModelForm):
     class Meta:
         model = Pedido
-        fields = ['cliente_nombre','descripcion', 'email', 'producto_referencia',  ]
+        fields = ['token', 'cliente_nombre','descripcion', 'email', 'producto_referencia', 'imagen_Referencia' ]
         widgets = {
             'cliente_nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
             'email': forms.Textarea(attrs={'class': 'form-control', 'rows':3}), 
-            'producto_referencia': forms.CheckboxSelectMultiple(attrs={'class': 'form-control'}),
+            #'producto_referencia': forms.CheckboxSelectMultiple(attrs={'class': 'form-control'}),
             #'imagen_Referencia':#
         }
         labels = {

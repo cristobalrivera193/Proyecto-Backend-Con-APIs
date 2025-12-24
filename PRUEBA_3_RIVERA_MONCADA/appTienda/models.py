@@ -36,7 +36,6 @@ class Pedido(models.Model):
         ('PARCIAL', 'Parcial'),
         ('PAGADO', 'Pagado'),
     ]
-
     ESTADO_PEDIDO = [
         ('SOLICITADO', 'Solicitado'),
         ('APROBADO', 'Aprobado'),
@@ -46,7 +45,6 @@ class Pedido(models.Model):
         ('FINALIZADA', 'Finalizada'),
         ('CANCELADA', 'Cancelada'),
     ]
-
     ORIGEN_PEDIDO = [
         ('FACEBOOK', 'Facebook'),
         ('INSTAGRAM', 'Instagram'),
@@ -67,3 +65,4 @@ class Pedido(models.Model):
 
     def __str__(self):
         return f"Pedido {self.token}"
+

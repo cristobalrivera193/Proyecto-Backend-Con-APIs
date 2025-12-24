@@ -30,4 +30,4 @@ class InsumoAdmin(admin.ModelAdmin):
 
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
-    list_display = ['id', 'origen_pedido', 'estado_pago', 'estado_pedido', 'email']
+    list_display = ['id', 'origen_pedido', 'estado_pago', 'estado_pedido', 'email', 'imagen_Referencia']

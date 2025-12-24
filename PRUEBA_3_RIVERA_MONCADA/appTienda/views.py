@@ -1,7 +1,14 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Producto, Categoria
+from .models import Producto, Categoria, Pedido
 from .forms import PedidoForm
 from django.shortcuts import redirect
+from django.contrib import messages
+from django.db.models import Q
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Avg
+from django.shortcuts import render
+from datetime import datetime, timedelta
+from appTienda.models import Pedido
 
 
 def index(request):
@@ -9,14 +16,22 @@ def index(request):
 
 
 def catalogo(request):
-    productos= Producto.objects.all()
-    categorias= Categoria.objects.all()
+    query = request.GET.get('search', '')
+    if query:
+        productos= Producto.objects.filter(
+            Q(nombre__icontains=query) |
+            Q(categoria__nombre__icontains=query)
+        )
+        categorias= Categoria.objects.filter()
+    else:
+        productos= Producto.objects.all()
+        categorias= Categoria.objects.all()
 
     data = {
         'productos': productos,
-        'categorias': categorias
+        'categorias': categorias,
+        'query': query
         }
-
 
     return render(request, 'catalogo/catalogo.html', data)
 
@@ -31,16 +46,75 @@ def detalle_producto(request, id):
 
     return render(request, 'catalogo/detalle_producto.html', data)
 
+
 def realizar_pedido(request):
     if request.method == 'POST':
-        form = PedidoForm(request.POST)
+        form = PedidoForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            return redirect('catalogo')
+            pedido = form.save(commit=False)
+            pedido.origen_pedido = 'SITIO_WEB'
+            pedido.estado_pedido = 'SOLICITADO'
+            pedido.estado_pago = 'PENDIENTE'
+            pedido.save() 
+            
+            messages.success(request, f'¡Pedido realizado con éxito! Tu token de seguimiento es: {pedido.token}')
+            
+            return redirect('seguimiento_pedido', token=pedido.token)
     else:
         form = PedidoForm()
-        
-    data = {
-        'form': form
+
+    return render(request, 'catalogo/realizar_pedido.html', {'form': form})
+
+def examinar_pedido(request):
+    pedido = Pedido.objects.all()
+    data = {'pedido': pedido}
+    return render(request, 'catalogo/estado_pedido.html', data)
+
+def seguimiento_pedido(request, token):
+    pedido = get_object_or_404(Pedido, token=token)
+    
+    context = {
+        'pedido': pedido,
     }
-    return render(request, 'catalogo/realizar_pedido.html', data)
+    return render(request, 'catalogo/estado_pedido.html', context)
+
+
+
+@login_required
+def reporte_pedidos(request):
+    # Filtros por GET
+    estado = request.GET.get('estado', '')
+    plataforma = request.GET.get('plataforma', '')
+    desde = request.GET.get('desde', (datetime.now() - timedelta(days=30)).date())
+    hasta = request.GET.get('hasta', datetime.now().date())
+
+    pedidos = Pedido.objects.filter(fecha_solicitada__date__range=[desde, hasta])
+    if estado:
+        pedidos = pedidos.filter(estado_pedido=estado)
+    if plataforma:
+        pedidos = pedidos.filter(origen_pedido=plataforma)
+
+    # Datos para tabla y gráfico
+    total_pedidos = pedidos.count()
+    por_estado = pedidos.values('estado_pedido').annotate(count=Count('estado_pedido'))
+    por_plataforma = pedidos.values('origen_pedido').annotate(count=Count('origen_pedido'))
+    promedio_valor = pedidos.aggregate(Avg('valor'))['valor__avg'] or 0  # Si tienes campo 'valor', ajusta
+
+    # Datos para Chart.js
+    labels_estado = [item['estado_pedido'] for item in por_estado]
+    data_estado = [item['count'] for item in por_estado]
+
+    context = {
+        'pedidos': pedidos,
+        'total_pedidos': total_pedidos,
+        'por_estado': por_estado,
+        'por_plataforma': por_plataforma,
+        'promedio_valor': promedio_valor,
+        'chart_labels': labels_estado,
+        'chart_data': data_estado,
+        'desde': desde,
+        'hasta': hasta,
+        'estado': estado,
+        'plataforma': plataforma,
+    }
+    return render(request, 'appTienda/reporte_pedidos.html', context)

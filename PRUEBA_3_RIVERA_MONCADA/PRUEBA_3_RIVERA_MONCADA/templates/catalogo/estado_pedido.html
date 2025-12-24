@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Seguimiento de Pedido{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <h1 class="text-center mb-5">Seguimiento de tu Pedido</h1>
+        {% if pedido %}
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">
+                        Token de seguimiento: <strong class="fs-3">{{ pedido.token }}</strong>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h5>Datos del cliente</h5>
+                            <hr>
+                            <p><strong>Nombre:</strong> {{ pedido.cliente_nombre }}</p>
+                            <p><strong>Email:</strong> {{ pedido.email }}</p>
+                            {% if pedido.telefono %}
+                                <p><strong>Teléfono:</strong> {{ pedido.telefono }}</p>
+                            {% endif %}
+                            {% if pedido.usuario_red_social %}
+                                <p><strong>Usuario red social:</strong> {{ pedido.usuario_red_social }}</p>
+                            {% endif %}
+                            <p><strong>Origen:</strong> {{ pedido.get_origen_pedido_display }}</p>
+                            <p><strong>Fecha de solicitud:</strong> {{ pedido.fecha_solicitada|date:"d/m/Y H:i" }}</p>
+                            {% if pedido.fecha_necesidad %}
+                                <p><strong>Fecha necesitada:</strong> {{ pedido.fecha_necesidad|date:"d/m/Y" }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h5>Estado actual</h5>
+                            <hr>
+                            <p>
+                                <strong>Estado del pedido:</strong><br>
+                                <span class="badge bg-info fs-6">{{ pedido.get_estado_pedido_display }}</span>
+                            </p>
+                            <p>
+                                <strong>Estado de pago:</strong><br>
+                                <span class="badge bg-warning fs-6">{{ pedido.get_estado_pago_display }}</span>
+                            </p>
+                            {% if pedido.producto_referencia %}
+                                <p><strong>Producto de referencia:</strong> {{ pedido.producto_referencia.nombre }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr class="my-4">
+                    <h5>Descripción de lo solicitado</h5>
+                    <p class="lead">{{ pedido.descripcion }}</p>
+                    {% if pedido.imagen_Referencia %}
+                        <h5 class="mt-4">Imagen de referencia</h5>
+                        <img src="{{ pedido.imagen_Referencia.url }}" class="img-fluid " alt="Imagen de referencia del pedido">
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-light text-center">
+                    <small class="text-muted">
+                        Guarda este enlace para consultar el estado en cualquier momento:
+                    </small><br>
+                    <strong>{{ request.build_absolute_uri }}</strong>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-danger text-center" role="alert">
+                <h4 class="alert-heading">Pedido no encontrado</h4>
+                <p>El token ingresado no corresponde a ningún pedido registrado.</p>
+                <hr>
+                <p class="mb-0">Verifica el enlace o contacta con nosotros para más ayuda.</p>
+            </div>
+        {% endif %}
+        <div class="text-center mt-4">
+            <a href="{% url 'catalogo' %}" class="btn btn-outline-secondary btn-lg">Volver al Catálogo</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
