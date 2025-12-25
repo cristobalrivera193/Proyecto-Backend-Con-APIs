@@ -55,6 +55,9 @@
                         <h5 class="mt-4">Imagen de referencia</h5>
                         <img src="{{ pedido.imagen_Referencia.url }}" class="img-fluid " alt="Imagen de referencia del pedido">
                     {% endif %}
+                        <h5 class="mt-4">Resumen de Estado (Gráfico)</h5>
+                        <canvas id="estadoChart" width="400" height="200"></canvas>
+
                 </div>
                 <div class="card-footer bg-light text-center">
                     <small class="text-muted">
@@ -76,4 +79,5 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}

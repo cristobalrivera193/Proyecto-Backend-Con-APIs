@@ -7,6 +7,6 @@ urlpatterns = [
     path('realizar_pedido/', views.realizar_pedido, name='realizar_pedido'),
     path('examinar_pedido/', views.examinar_pedido, name='examinar_pedido'),
     path('seguimiento/<str:token>/', views.seguimiento_pedido, name='seguimiento_pedido'),
-    path('reporte/', views.reporte_pedidos, name='reporte_pedidos'),
     path('api/', include('appTienda.api_urls')),
+    path('reporte/', views.reporte_pedidos, name='reporte_pedidos'),
 ]

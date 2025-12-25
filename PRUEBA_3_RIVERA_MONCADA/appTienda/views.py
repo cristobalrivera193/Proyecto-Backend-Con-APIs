@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from urllib3 import request
 from .models import Producto, Categoria, Pedido
 from .forms import PedidoForm
 from django.shortcuts import redirect
@@ -7,9 +8,8 @@ from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Avg
 from django.shortcuts import render
-from datetime import datetime, timedelta
 from appTienda.models import Pedido
-
+from django.utils.dateparse import parse_date
 
 def index(request):
     return render(request, 'base.html')
@@ -73,48 +73,64 @@ def examinar_pedido(request):
 def seguimiento_pedido(request, token):
     pedido = get_object_or_404(Pedido, token=token)
     
+
+    estados_posibles = [choice[1] for choice in Pedido.ESTADO_PEDIDO]  
+    chart_labels = estados_posibles
+    chart_data = [1 if choice == pedido.get_estado_pedido_display() else 0 for choice in estados_posibles]  
+
     context = {
         'pedido': pedido,
+        'chart_labels': chart_labels,
+        'chart_data': chart_data,
     }
     return render(request, 'catalogo/estado_pedido.html', context)
 
 
-
-@login_required
 def reporte_pedidos(request):
-    # Filtros por GET
-    estado = request.GET.get('estado', '')
-    plataforma = request.GET.get('plataforma', '')
-    desde = request.GET.get('desde', (datetime.now() - timedelta(days=30)).date())
-    hasta = request.GET.get('hasta', datetime.now().date())
+    # Filtros
+    desde = request.GET.get('desde')
+    hasta = request.GET.get('hasta')
+    estado = request.GET.get('estado')
+    plataforma = request.GET.get('plataforma')
 
-    pedidos = Pedido.objects.filter(fecha_solicitada__date__range=[desde, hasta])
+    pedidos = Pedido.objects.all()
+
+    if desde:
+        pedidos = pedidos.filter(fecha_solicitada__date__gte=parse_date(desde))
+    if hasta:
+        pedidos = pedidos.filter(fecha_solicitada__date__lte=parse_date(hasta))
     if estado:
         pedidos = pedidos.filter(estado_pedido=estado)
     if plataforma:
         pedidos = pedidos.filter(origen_pedido=plataforma)
 
-    # Datos para tabla y gráfico
-    total_pedidos = pedidos.count()
-    por_estado = pedidos.values('estado_pedido').annotate(count=Count('estado_pedido'))
-    por_plataforma = pedidos.values('origen_pedido').annotate(count=Count('origen_pedido'))
-    promedio_valor = pedidos.aggregate(Avg('valor'))['valor__avg'] or 0  # Si tienes campo 'valor', ajusta
+    # Métricas
+    por_estado = pedidos.values('estado_pedido').annotate(cantidad=Count('estado_pedido')).order_by('-cantidad')
+    por_plataforma = pedidos.values('origen_pedido').annotate(cantidad=Count('origen_pedido')).order_by('-cantidad')
+    productos_solicitados = pedidos.values('producto_referencia__nombre').annotate(cantidad=Count('producto_referencia')).order_by('-cantidad')[:10]
 
-    # Datos para Chart.js
+
     labels_estado = [item['estado_pedido'] for item in por_estado]
-    data_estado = [item['count'] for item in por_estado]
+    data_estado = [item['cantidad'] for item in por_estado]
+
+
+    labels_plataforma = [item['origen_pedido'] for item in por_plataforma]
+    data_plataforma = [item['cantidad'] for item in por_plataforma]
 
     context = {
         'pedidos': pedidos,
-        'total_pedidos': total_pedidos,
         'por_estado': por_estado,
         'por_plataforma': por_plataforma,
-        'promedio_valor': promedio_valor,
-        'chart_labels': labels_estado,
-        'chart_data': data_estado,
+        'productos_solicitados': productos_solicitados,
+        'labels_estado': labels_estado,
+        'data_estado': data_estado,
+        'labels_plataforma': labels_plataforma,
+        'data_plataforma': data_plataforma,
         'desde': desde,
         'hasta': hasta,
         'estado': estado,
         'plataforma': plataforma,
+        'estados_choices': Pedido.ESTADO_PEDIDO,
+        'plataformas_choices': Pedido.ORIGEN_PEDIDO,
     }
-    return render(request, 'appTienda/reporte_pedidos.html', context)
+    return render(request, 'catalogo/reporte_pedidos.html', context)
