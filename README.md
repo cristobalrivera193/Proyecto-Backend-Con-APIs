@@ -1,4 +1,3 @@
-# Proyecto-Backend-Con-APIs
 Proyecto Backend con Apis integradas
 ## Instalación local
 
@@ -9,25 +8,4 @@ Proyecto Backend con Apis integradas
 5. Ejecutar el servidor de desarrollo.
 
 
-## Endpoints API con ejemplos
-
-### Endpoint 1: Obtener datos de ejemplo
-
-- Método: GET
-- URL: https://ejemplo.com/api/datos-example/
-- Ejemplo de respuesta:
-```json
-{
-  "data": [
-    {
-      "id": 1,
-      "nombre": "Ejemplo 1",
-      "descripcion": "Descripción 1"
-    },
-    {
-      "id": 2,
-      "nombre": "Ejemplo 2",
-      "descripcion": "Descripción 2"
-    }
-  ]
 }
